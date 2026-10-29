@@ -1,0 +1,40 @@
+# ViDeck Pulse — publicar (o reapuntar) una Release que ya está como BORRADOR, sin volver a compilar.
+# Los archivos de la Release (instalador, zip portable, SHA256SUMS) son los que compiló «release» y que se probaron; aquí solo se
+# apunta el borrador al último commit de main y, si se pide, se publica (eso crea la etiqueta vX.Y.Z sobre ese commit).
+# Uso: Actions → publish-release → Run workflow → tag = v2.0.0-u1 · publicar = marcado solo cuando el instalador está aprobado.
+name: publish-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Etiqueta de la Release en borrador (p. ej. v2.0.0-u1)"
+        required: true
+      publish:
+        description: "Publicar la Release (desmarcado = solo apuntar el borrador al último commit de main)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apuntar y, si se pide, publicar el borrador
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+          draft=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)
+          if [ "$draft" != "true" ]; then echo "La Release $TAG no es un borrador (ya está publicada o no existe): no se toca."; exit 1; fi
+          if [ "$PUBLISH" = "true" ]; then
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft=false --latest
+            echo "Release $TAG publicada sobre $GITHUB_SHA"
+          else
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"
+            echo "Borrador $TAG apuntado a $GITHUB_SHA (sin publicar)"
+          fi

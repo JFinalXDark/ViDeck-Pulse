@@ -1,0 +1,42 @@
+# ViDeck Pulse — archivos que NO se suben al repositorio
+# Datos del usuario y de la sesión (se generan al usar el programa)
+config.json
+tracks_db.json
+sync_learned.json
+sync_trace.txt
+videck_pulse.log
+mpv.log
+crossfade_error.txt
+vu_baseline_*.png
+videos/
+videos_preparados/
+legacy/
+
+# Componentes de terceros: NO se distribuyen con el código (el gestor de componentes los descarga en el equipo del usuario)
+ffmpeg/
+mpv/
+libmpv*.dll
+mpv-2.dll
+Tesseract-OCR/
+
+# Python / compilación
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+*.spec.bak
+.venv/
+venv/
+
+# Instalador y paquetes generados
+installer/Output/
+*.zip
+*.7z
+*.exe
+
+# Editor / sistema
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

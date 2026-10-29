@@ -1,0 +1,7 @@
+PySide6>=6.6
+python-mpv>=1.0.5
+opencv-python>=4.8
+numpy>=1.24
+mss>=9.0
+pytesseract>=0.3.10
+# opcional (solo si eliges el método WGC en la pestaña Captura): windows-capture

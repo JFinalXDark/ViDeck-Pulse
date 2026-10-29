@@ -1,0 +1,215 @@
+# ViDeck Pulse — compilación y publicación automática (GitHub Actions)
+# Al crear una etiqueta «v*» (versión estable: v2.0.0-u1, v2.0.0-u2…; de prueba: v2.0.0-beta.N) se compila en Windows y se suben a la Release:
+#   · ViDeckPulse-<versión>-portable.zip   (carpeta con portable.flag: los datos quedan junto al programa)
+#   · ViDeckPulse-Setup-<versión>.exe      (instalador: «Archivos de programa» por defecto, o solo para el usuario sin administrador)
+#   · SHA256SUMS.txt                       (sumas de verificación)
+# NO se incluyen ffmpeg, libmpv ni Tesseract: el gestor de componentes los descarga en el equipo del usuario.
+# Probada en el repositorio privado con ensayos manuales (workflow_dispatch): compila, prueba el ejecutable, el instalador y el primer inicio.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Etiqueta de la versión a dejar como BORRADOR de Release (p. ej. v2.0.0-u1); vacío = solo ensayo, sin Release"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Versión a partir de la etiqueta
+        shell: pwsh
+        run: |
+          # La etiqueta viene del «push» de una etiqueta o, en un lanzamiento manual, del dato «tag» (así se puede dejar un borrador de Release sin empujar la etiqueta)
+          $in = "${{ inputs.tag }}"
+          $tag = ""
+          if ($in.StartsWith("v")) { $tag = $in } elseif ("${{ github.ref_type }}" -eq "tag" -and "${{ github.ref_name }}".StartsWith("v")) { $tag = "${{ github.ref_name }}" }
+          "TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          if (-not $tag) { $tag = "v0.0.0-dev" }
+          $ver = $tag.Substring(1)
+          "VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          # Título de la Release: v2.0.0-u1 -> «ViDeck Pulse v2.00 u1» (la estable); cualquier otra etiqueta se muestra tal cual
+          $title = "ViDeck Pulse $tag"
+          if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-u(\d+)$') { $title = "ViDeck Pulse v{0}.{1:D2} u{2}" -f $Matches[1], [int]$Matches[2], $Matches[4] }
+          "RELEASE_TITLE=$title" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          # «Pre-release» solo si la etiqueta dice beta; una versión estable (v2.0.0-u1) NO lo es
+          "IS_PRERELEASE=$($tag -match 'beta')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Dependencias
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+          # En el ejecutable basta OpenCV sin interfaz propia (la de Qt es la del programa)
+          pip uninstall -y opencv-python
+          pip install opencv-python-headless
+
+      - name: Pruebas rápidas (sin Qt real)
+        shell: pwsh
+        run: |
+          python -m compileall -q core gui main.py
+
+      - name: La etiqueta debe coincidir con la versión del programa
+        if: env.TAG != '' && !contains(env.TAG, 'beta')
+        shell: pwsh
+        run: |
+          # Una etiqueta de versión estable (v2.0.0-u1) solo se publica si core/version.py dice lo mismo: STABLE = True y el mismo «u<N>»
+          $v = python -c "from core import version; print(('%s|%s' % (version.STABLE, version.release_tag())))"
+          Write-Host "core/version.py: $v · etiqueta: $env:TAG"
+          if ($v -ne "True|$env:TAG") { throw "La etiqueta $env:TAG no coincide con core/version.py ($v)" }
+
+      - name: PyInstaller (onedir)
+        shell: pwsh
+        run: |
+          pyinstaller --noconfirm --clean packaging/ViDeckPulse.spec
+          if (-not (Test-Path dist/ViDeckPulse/ViDeckPulse.exe)) { throw "No se generó ViDeckPulse.exe" }
+
+      - name: Prueba de humo del ejecutable compilado
+        shell: pwsh
+        run: |
+          # El ejecutable es de ventanas (sin consola): el informe se escribe en un archivo (core/smoke.py)
+          $out = Join-Path $PWD "smoke.txt"
+          $p = Start-Process -FilePath "dist/ViDeckPulse/ViDeckPulse.exe" -ArgumentList "--smoke-test", "`"$out`"" -Wait -PassThru
+          if (Test-Path $out) { Get-Content $out } else { Write-Host "No se generó smoke.txt" }
+          if ($p.ExitCode -ne 0) { throw "La prueba de humo falló (código $($p.ExitCode))" }
+
+      - name: Primer inicio de extremo a extremo (instala libmpv, Tesseract y ffmpeg con el ejecutable compilado)
+        timeout-minutes: 25
+        shell: pwsh
+        run: |
+          # Equipo limpio: ni libmpv ni Tesseract. Es lo que hace la ventana «Componentes necesarios», sin ventana; los datos van a una carpeta temporal
+          $env:VIDECK_PULSE_DATA = Join-Path $env:RUNNER_TEMP "vp-firstrun"
+          New-Item -ItemType Directory -Force $env:VIDECK_PULSE_DATA | Out-Null
+          $out = Join-Path $PWD "firstrun.txt"
+          $p = Start-Process -FilePath "dist/ViDeckPulse/ViDeckPulse.exe" -ArgumentList "--firstrun-selftest", "`"$out`"" -PassThru
+          if (-not $p.WaitForExit(22 * 60 * 1000)) { try { $p.Kill() } catch {}; Write-Host "Tiempo agotado" }
+          if (Test-Path $out) { Get-Content $out } else { Write-Host "No se generó firstrun.txt" }
+          if (-not $p.HasExited -or $p.ExitCode -ne 0) { throw "El primer inicio de extremo a extremo falló" }
+
+      - name: Zip portable (con portable.flag)
+        shell: pwsh
+        run: |
+          New-Item -ItemType File -Path dist/ViDeckPulse/portable.flag -Force | Out-Null
+          Compress-Archive -Path dist/ViDeckPulse -DestinationPath "ViDeckPulse-$env:VERSION-portable.zip"
+
+      - name: Instalador (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          # El instalador NO lleva portable.flag: los datos van a %APPDATA%\ViDeck Pulse
+          Remove-Item dist/ViDeckPulse/portable.flag -ErrorAction SilentlyContinue
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$env:VERSION" installer/ViDeckPulse.iss
+          Move-Item "installer/Output/ViDeckPulse-Setup-$env:VERSION.exe" . -Force
+
+      - name: Prueba del instalador (instalación silenciosa, prueba de humo y desinstalación)
+        timeout-minutes: 6
+        shell: pwsh
+        run: |
+          function Note($title, $text) { $t = ("$text" -replace "%", "%25" -replace "`r", "" -replace "`n", "%0A"); Write-Host "::notice title=$title::$t" }
+          # Espera solo al proceso lanzado (no a sus hijos) y con límite de tiempo: si algo se queda esperando, falla en vez de colgarse
+          function Run($file, $arguments, $seconds) {
+            $p = Start-Process -FilePath $file -ArgumentList $arguments -PassThru
+            if (-not $p.WaitForExit($seconds * 1000)) { try { $p.Kill() } catch {}; throw "Tiempo agotado ($seconds s): $file $arguments" }
+            return $p.ExitCode
+          }
+          $log = @()
+          try {
+            $inst = Join-Path $PWD "inst-test"
+            $code = Run (Join-Path $PWD "ViDeckPulse-Setup-$env:VERSION.exe") "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=`"$inst`"" 120
+            $log += "instalador: código $code"
+            if ($code -ne 0) { throw "El instalador terminó con código $code" }
+            if (-not (Test-Path "$inst/ViDeckPulse.exe")) { throw "El instalador no dejó ViDeckPulse.exe" }
+            if (Test-Path "$inst/portable.flag") { throw "El instalador no debe llevar portable.flag" }
+            $out = Join-Path $PWD "smoke-installed.txt"
+            $code = Run "$inst/ViDeckPulse.exe" "--smoke-test `"$out`"" 90
+            $res = if (Test-Path $out) { (Get-Content $out | Select-Object -Last 1) } else { "sin informe" }
+            $log += "humo del instalado: código $code ($res)"
+            if ($code -ne 0) { throw "La prueba de humo del programa instalado falló (código $code): $res" }
+            $dataDir = Join-Path $env:APPDATA "ViDeck Pulse"
+            $log += "datos en APPDATA tras el humo: $(Test-Path $dataDir)"
+            $code = Run "$inst/unins000.exe" "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" 60
+            Start-Sleep -Seconds 8
+            $log += "desinstalador: código $code; programa quitado: $(-not (Test-Path "$inst/ViDeckPulse.exe")); datos conservados: $(Test-Path $dataDir)"
+            if (Test-Path "$inst/ViDeckPulse.exe") { throw "El desinstalador no quitó el programa" }
+            Note "installer-test" ($log -join "`n")
+          } catch {
+            Note "installer-test-error" (($log + $_.Exception.Message) -join "`n")
+            throw
+          }
+
+      - name: Sumas SHA-256
+        shell: pwsh
+        run: |
+          Get-FileHash "ViDeckPulse-$env:VERSION-portable.zip","ViDeckPulse-Setup-$env:VERSION.exe" -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Out-File SHA256SUMS.txt -Encoding ascii
+
+      - name: Resumen en anotaciones (legible por la API de GitHub, sin descargar nada)
+        if: always()
+        shell: pwsh
+        run: |
+          function Note($title, $text) { $t = ("$text" -replace "%", "%25" -replace "`r", "" -replace "`n", "%0A"); Write-Host "::notice title=$title::$t" }
+          if (Test-Path smoke.txt) { Note "smoke" (Get-Content smoke.txt -Raw) } else { Note "smoke" "no smoke.txt" }
+          if (Test-Path firstrun.txt) { Note "firstrun" (Get-Content firstrun.txt -Raw) } else { Note "firstrun" "no firstrun.txt" }
+          if (Test-Path SHA256SUMS.txt) { Note "sha256" (Get-Content SHA256SUMS.txt -Raw) }
+          $files = Get-ChildItem -File -Filter "ViDeckPulse-*" | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
+          Note "files" ($files -join "`n")
+          if (Test-Path dist/ViDeckPulse) {
+            $top = Get-ChildItem dist/ViDeckPulse | ForEach-Object { if ($_.PSIsContainer) { "$($_.Name)/" } else { "{0} ({1:N1} MB)" -f $_.Name, ($_.Length / 1MB) } }
+            Note "dist" ($top -join "`n")
+          }
+          $zip = Get-ChildItem -Filter "ViDeckPulse-*-portable.zip" | Select-Object -First 1
+          if ($zip) {
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $z = [IO.Compression.ZipFile]::OpenRead($zip.FullName)
+            $names = $z.Entries | ForEach-Object { $_.FullName }
+            Note "zip" ("{0} entries`nportable.flag: {1}`nexe: {2}`n{3}" -f $names.Count, [bool]($names -match "portable\.flag"), [bool]($names -match "ViDeckPulse\.exe"), (($names | Select-Object -First 12) -join "`n"))
+            $z.Dispose()
+          }
+
+      - name: Guardar los archivos como artefacto (ensayos sin Release)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ViDeckPulse-${{ env.VERSION }}
+          path: |
+            ViDeckPulse-${{ env.VERSION }}-portable.zip
+            ViDeckPulse-Setup-${{ env.VERSION }}.exe
+            SHA256SUMS.txt
+            smoke.txt
+            firstrun.txt
+          if-no-files-found: warn
+
+      - name: Publicar la Release
+        if: env.TAG != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ env.RELEASE_TITLE }}
+          draft: true                                       # borrador: se revisa y se publica a mano (la 1.ª vez, en el repositorio privado, para probar el instalador)
+          prerelease: ${{ env.IS_PRERELEASE == 'True' }}      # solo las etiquetas «beta» son pre-release; v2.0.0-u1 es la versión estable
+          body: |
+            > **SmartScreen:** Windows may warn about the installer the first time because it isn't code-signed yet: choose **More info**, then **Run anyway**. The portable zip needs no installation. Verify the files with `SHA256SUMS.txt`.
+            >
+            > **SmartScreen:** Windows puede avisar del instalador la primera vez porque aún no está firmado digitalmente: elige **Más información** y luego **Ejecutar de todas formas**. El zip portable no necesita instalación. Verifica los archivos con `SHA256SUMS.txt`.
+          generate_release_notes: true
+          files: |
+            ViDeckPulse-${{ env.VERSION }}-portable.zip
+            ViDeckPulse-Setup-${{ env.VERSION }}.exe
+            SHA256SUMS.txt
