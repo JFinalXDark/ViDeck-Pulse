@@ -8,17 +8,17 @@
 
 ViDeck Pulse sigue los decks de **Traktor Pro 4**: lee el título, los BPM y el reloj de cada deck desde la ventana de Traktor (OCR + análisis de píxeles, sin MIDI) y reproduce videos sincronizados con el tempo mediante mpv, con crossfades en OpenGL y visuales aleatorios. Windows 10/11. Proyecto independiente, sin relación con Native Instruments.
 
-> **Estado:** estable v2.00 u1. Soporte actual: **Windows 10/11 + Traktor Pro 4, con 2 decks (A y B)**. El modo de 4 decks de Traktor aún no está soportado. [Read in English](README.md).
+> **Estado:** Estable v2.00 u1. Soporte actual: **Windows 10/11 + Traktor Pro 4, con 2 decks (A y B)**. El modo de 4 decks de Traktor aún no está soportado. [Read in English](README.md).
 
 <p align="center">
-  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/releases/latest"><img src="https://img.shields.io/github/v/release/JFinalXDark/ViDeck-Pulse?label=descarga&color=e0283a&display_name=tag&labelColor=0b0f1a&style=flat" alt="descarga"></a>
+  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/releases/latest"><img src="https://img.shields.io/github/v/release/JFinalXDark/ViDeck-Pulse?label=descarga&color=e0283a&display_name=tag&labelColor=0b0f1a&style=flat" alt="Descarga"></a>
   <a href="https://github.com/JFinalXDark/ViDeck-Pulse/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/JFinalXDark/ViDeck-Pulse/ci.yml?label=CI&labelColor=0b0f1a&style=flat" alt="CI"></a>
-  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0--or--later-2f8fd8?labelColor=0b0f1a&style=flat" alt="licencia"></a>
-  <a href="#requisitos"><img src="https://img.shields.io/badge/plataforma-Windows%2010%2F11-2f8fd8?labelColor=0b0f1a&style=flat" alt="plataforma"></a>
+  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0--or--later-2f8fd8?labelColor=0b0f1a&style=flat" alt="Licencia"></a>
+  <a href="#requisitos"><img src="https://img.shields.io/badge/plataforma-Windows%2010%2F11-2f8fd8?labelColor=0b0f1a&style=flat" alt="Plataforma"></a>
   <a href="#requisitos"><img src="https://img.shields.io/badge/Traktor-Pro%204-d04ac0?labelColor=0b0f1a&style=flat" alt="Traktor Pro 4"></a>
-  <a href="#requisitos"><img src="https://img.shields.io/badge/decks-2%20(A%20%2B%20B)-d04ac0?labelColor=0b0f1a&style=flat" alt="2 decks (A y B)"></a>
-  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/componentes-no%20incluidos-6b7280?labelColor=0b0f1a&style=flat" alt="componentes"></a>
-  <a href="https://ko-fi.com/jfinalxdark"><img src="https://img.shields.io/badge/Donations-Support%20me-2f8fd8?labelColor=0b0f1a&style=flat" alt="Donations">
+  <a href="#requisitos"><img src="https://img.shields.io/badge/decks-2%20(A%20%2B%20B)-d04ac0?labelColor=0b0f1a&style=flat" alt="2 Decks (A y B)"></a>
+  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/componentes-no%20incluidos-6b7280?labelColor=0b0f1a&style=flat" alt="Componentes"></a>
+  <a href="https://ko-fi.com/jfinalxdark"><img src="https://img.shields.io/badge/Donations-Support%20me-2f8fd8?labelColor=0b0f1a&style=flat" alt="Donaciones">
 </p>
 
 > [!NOTE]
