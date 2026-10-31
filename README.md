@@ -11,14 +11,16 @@ ViDeck Pulse follows your **Traktor Pro 4** decks: it reads each deck's title, B
 > **Status:** Stable v2.00 u1. Current support: **Windows 10/11 + Traktor Pro 4, with 2 decks (A and B)**. Traktor's 4-deck mode is not supported yet. [Leer en español](README.es.md).
 
 <p align="center">
-  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/releases/latest"><img src="https://img.shields.io/github/v/release/JFinalXDark/ViDeck-Pulse?label=download&color=e0283a&display_name=tag&labelColor=0b0f1a&style=flat" alt="download"></a>
+  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/releases/latest"><img src="https://img.shields.io/github/v/release/JFinalXDark/ViDeck-Pulse?label=download&color=e0283a&display_name=tag&labelColor=0b0f1a&style=flat" alt="Download"></a>
   <a href="https://github.com/JFinalXDark/ViDeck-Pulse/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/JFinalXDark/ViDeck-Pulse/ci.yml?label=CI&labelColor=0b0f1a&style=flat" alt="CI"></a>
-  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-2f8fd8?labelColor=0b0f1a&style=flat" alt="license"></a>
-  <a href="#requirements"><img src="https://img.shields.io/badge/platform-Windows%2010%2F11-2f8fd8?labelColor=0b0f1a&style=flat" alt="platform"></a>
+  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-2f8fd8?labelColor=0b0f1a&style=flat" alt="License"></a>
+  <a href="#requirements"><img src="https://img.shields.io/badge/platform-Windows%2010%2F11-2f8fd8?labelColor=0b0f1a&style=flat" alt="Platform"></a>
   <a href="#requirements"><img src="https://img.shields.io/badge/Traktor-Pro%204-d04ac0?labelColor=0b0f1a&style=flat" alt="Traktor Pro 4"></a>
-  <a href="#requirements"><img src="https://img.shields.io/badge/decks-2%20(A%20%2B%20B)-d04ac0?labelColor=0b0f1a&style=flat" alt="2 decks (A and B)"></a>
-  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/components-not%20bundled-6b7280?labelColor=0b0f1a&style=flat" alt="components"></a>
+  <a href="#requirements"><img src="https://img.shields.io/badge/decks-2%20(A%20%2B%20B)-d04ac0?labelColor=0b0f1a&style=flat" alt="2 Decks (A and B)"></a>
+  <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/components-not%20bundled-6b7280?labelColor=0b0f1a&style=flat" alt="Components"></a>
+  <a href="https://ko-fi.com/jfinalxdark"><img src="https://img.shields.io/badge/Donations-Support%20me-2f8fd8?labelColor=0b0f1a&style=flat" alt="Donations">
 </p>
+
 
 ## What it does
 
