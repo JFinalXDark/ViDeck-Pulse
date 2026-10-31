@@ -21,6 +21,8 @@ ViDeck Pulse follows your **Traktor Pro 4** decks: it reads each deck's title, B
   <a href="https://ko-fi.com/jfinalxdark"><img src="https://img.shields.io/badge/Donations-Support%20me-2f8fd8?labelColor=0b0f1a&style=flat" alt="Donations">
 </p>
 
+> [!NOTE]
+> **Disclaimer:** All donations will be used for the development and updates of this software, along with possible future improvements.
 
 ## What it does
 
