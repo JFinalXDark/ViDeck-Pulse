@@ -18,7 +18,11 @@ ViDeck Pulse sigue los decks de **Traktor Pro 4**: lee el título, los BPM y el 
   <a href="#requisitos"><img src="https://img.shields.io/badge/Traktor-Pro%204-d04ac0?labelColor=0b0f1a&style=flat" alt="Traktor Pro 4"></a>
   <a href="#requisitos"><img src="https://img.shields.io/badge/decks-2%20(A%20%2B%20B)-d04ac0?labelColor=0b0f1a&style=flat" alt="2 decks (A y B)"></a>
   <a href="https://github.com/JFinalXDark/ViDeck-Pulse/blob/main/THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/componentes-no%20incluidos-6b7280?labelColor=0b0f1a&style=flat" alt="componentes"></a>
+  <a href="https://ko-fi.com/jfinalxdark"><img src="https://img.shields.io/badge/Donations-Support%20me-2f8fd8?labelColor=0b0f1a&style=flat" alt="Donations">
 </p>
+
+> [!NOTE]
+> **Aviso:** Todas las donaciones se utilizarán para el desarrollo y las actualizaciones de este software, junto con posibles mejoras a futuro.
 
 ## Cómo funciona
 
